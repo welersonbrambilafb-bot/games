@@ -53,7 +53,7 @@
 </head>
 <body>
 <h1>Jogo das Palmas 👏</h1>
-<p id="palavra">BANANA</p>
+<p id="palavra">BICICLETA</p>
 
 <div id="palma-btn">👏</div>
 <div id="contador">0 palmas</div>
@@ -78,54 +78,26 @@
 
 <script>
 const palavras = [
-  { texto: "BANANA", silabas: 3 }, { texto: "CACHORRO", silabas: 3 },
-  { texto: "ELEFANTE", silabas: 4 }, { texto: "UVA", silabas: 2 },
-  { texto: "JACARÉ", silabas: 3 }, { texto: "GATO", silabas: 2 },
-  { texto: "CASA", silabas: 2 }, { texto: "PATO", silabas: 2 },
-  { texto: "BONECA", silabas: 3 }, { texto: "MENINO", silabas: 3 },
-  { texto: "MENINA", silabas: 3 }, { texto: "ESCOLA", silabas: 3 },
-  { texto: "CARRO", silabas: 2 }, { texto: "MOTO", silabas: 2 },
-  { texto: "CAVALO", silabas: 3 }, { texto: "ABELHA", silabas: 3 },
-  { texto: "BOLA", silabas: 2 }, { texto: "BOLO", silabas: 2 },
-  { texto: "CHUVA", silabas: 2 }, { texto: "PEIXE", silabas: 2 },
-  { texto: "GALINHA", silabas: 3 }, { texto: "SAPO", silabas: 2 },
-  { texto: "BEBÊ", silabas: 2 }, { texto: "FOCA", silabas: 2 },
-  { texto: "MACACO", silabas: 3 }, { texto: "ONÇA", silabas: 2 },
-  { texto: "LEÃO", silabas: 2 }, { texto: "TIGRE", silabas: 2 },
-  { texto: "FORMIGA", silabas: 3 }, { texto: "FLOR", silabas: 1 },
-  { texto: "COPO", silabas: 2 }, { texto: "MESA", silabas: 2 },
-  { texto: "CADEIRA", silabas: 3 }, { texto: "SAPATO", silabas: 3 },
-  { texto: "CAMISA", silabas: 3 }, { texto: "SAIA", silabas: 2 },
-  { texto: "CALÇA", silabas: 2 }, { texto: "CHAPÉU", silabas: 2 },
-  { texto: "RELÓGIO", silabas: 3 }, { texto: "BONECO", silabas: 3 },
-  { texto: "DENTE", silabas: 2 }, { texto: "CABELO", silabas: 3 },
-  { texto: "OLHO", silabas: 2 }, { texto: "NARIZ", silabas: 2 },
-  { texto: "ORELHA", silabas: 3 }, { texto: "BOCA", silabas: 2 },
-  { texto: "PEITO", silabas: 2 }, { texto: "BRAÇO", silabas: 2 },
-  { texto: "PERNA", silabas: 2 }, { texto: "MÃO", silabas: 1 },
-  { texto: "PÉ", silabas: 1 }, { texto: "LÁPIS", silabas: 2 },
-  { texto: "CANETA", silabas: 3 }, { texto: "CADERNO", silabas: 3 },
-  { texto: "LIVRO", silabas: 2 }, { texto: "BORRACHA", silabas: 3 },
-  { texto: "RÉGUA", silabas: 2 }, { texto: "QUADRO", silabas: 2 },
-  { texto: "GIZ", silabas: 1 }, { texto: "PROFESSOR", silabas: 3 },
-  { texto: "ALUNA", silabas: 3 }, { texto: "AMIGO", silabas: 3 },
-  { texto: "AMIGA", silabas: 3 }, { texto: "SOL", silabas: 1 },
-  { texto: "LUA", silabas: 2 }, { texto: "ESTRELA", silabas: 3 },
-  { texto: "CÉU", silabas: 1 }, { texto: "ÁRVORE", silabas: 3 },
-  { texto: "FOLHA", silabas: 2 }, { texto: "FRUTA", silabas: 2 },
-  { texto: "MAÇÃ", silabas: 2 }, { texto: "PERA", silabas: 2 },
-  { texto: "LARANJA", silabas: 3 }, { texto: "MELANCIA", silabas: 4 },
-  { texto: "MORANGO", silabas: 3 }, { texto: "ABACAXI", silabas: 4 },
-  { texto: "LIMÃO", silabas: 2 }, { texto: "TOMATE", silabas: 3 },
-  { texto: "BATATA", silabas: 3 }, { texto: "CENOURA", silabas: 3 },
-  { texto: "FEIJÃO", silabas: 2 }, { texto: "ARROZ", silabas: 2 },
-  { texto: "PÃO", silabas: 1 }, { texto: "LEITE", silabas: 2 },
-  { texto: "QUEIJO", silabas: 2 }, { texto: "OVO", silabas: 2 },
-  { texto: "CARNE", silabas: 2 }, { texto: "SOPA", silabas: 2 },
-  { texto: "PIZZA", silabas: 2 }, { texto: "DOCE", silabas: 2 },
-  { texto: "BISCOITO", silabas: 3 }, { texto: "SORVETE", silabas: 3 },
-  { texto: "CHOCOLATE", silabas: 4 }, { texto: "BALA", silabas: 2 },
-  { texto: "PIPOCA", silabas: 3 }
+  { texto: "BICICLETA", silabas: 4 },
+  { texto: "TELEVISÃO", silabas: 4 },
+  { texto: "COMPUTADOR", silabas: 4 },
+  { texto: "ASTRONAUTA", silabas: 5 },
+  { texto: "HIPOPÓTAMO", silabas: 5 },
+  { texto: "CADEIRANTE", silabas: 4 },
+  { texto: "BORBOLETA", silabas: 4 },
+  { texto: "BORRACHA", silabas: 3 },
+  { texto: "ARBUSTO", silabas: 3 },
+  { texto: "JANELA", silabas: 3 },
+  { texto: "ALMOÇO", silabas: 3 },
+  { texto: "PRESENTE", silabas: 3 },
+  { texto: "BRINQUEDO", silabas: 3 },
+  { texto: "PORTA", silabas: 2 },
+  { texto: "LIVRO", silabas: 2 },
+  { texto: "PAREDE", silabas: 3 },
+  { texto: "VIDRO", silabas: 2 },
+  { texto: "LEBRE", silabas: 2 },
+  { texto: "PAU", silabas: 1 },
+  { texto: "BOMBEIRO", silabas: 3 }
 ];
 
 let indice = 0;
@@ -293,6 +265,7 @@ mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para d
 </script>
 </body>
 </html>
+
 
 
 
