@@ -22,10 +22,31 @@
   .btn-check:hover { background: #1e88e5; }
   .btn-next { background: #ffca28; color: #4e342e; }
   .btn-next:hover { background: #ffb300; }
+  .btn-toggle-mic { background: #4caf50; color: white; }
+  .btn-toggle-mic:hover { background: #45a049; }
+  .btn-toggle-mic.desligado { background: #f44336; }
+  .btn-toggle-mic.desligado:hover { background: #d32f2f; }
   #resultado { font-size: 26px; font-weight: bold; margin-top: 15px; display: none; }
   #resultado.certo { color: green; animation: pulse 0.6s infinite alternate; }
   #resultado.errado { color: red; animation: shake 0.3s infinite; }
   #mensagem-microfone { font-size: 18px; color: #d84315; margin: 10px 0; }
+  #status-microfone { font-size: 16px; margin: 10px 0; padding: 10px; border-radius: 5px; }
+  .mic-ativo { background: #e8f5e8; color: #2e7d32; }
+  .mic-inativo { background: #ffebee; color: #c62828; }
+  .volume-indicator { 
+    width: 200px; 
+    height: 10px; 
+    background: #ddd; 
+    margin: 10px auto; 
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .volume-bar { 
+    height: 100%; 
+    background: linear-gradient(to right, #4caf50, #ff9800, #f44336);
+    width: 0%; 
+    transition: width 0.1s;
+  }
   @keyframes pulse { from {transform: scale(1);} to {transform: scale(1.2);} }
   @keyframes shake { 0%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);} }
 </style>
@@ -37,11 +58,21 @@
 <div id="palma-btn">👏</div>
 <div id="contador">0 palmas</div>
 <div id="palmas"></div>
+
+<div id="status-microfone" class="mic-inativo">
+  🎤 Microfone: Desligado
+</div>
+
+<div class="volume-indicator">
+  <div class="volume-bar" id="volume-bar"></div>
+</div>
+
 <div id="mensagem-microfone"></div>
 
 <button class="btn btn-remove" onclick="removerPalma()">Remover Palmas</button>
 <button class="btn btn-check" onclick="conferir()">Conferir</button>
 <button class="btn btn-next" onclick="proxima()">Próximo</button>
+<button class="btn btn-toggle-mic" id="toggle-mic" onclick="toggleMicrofone()">Ligar Microfone</button>
 
 <div id="resultado"></div>
 
@@ -99,12 +130,19 @@ const palavras = [
 
 let indice = 0;
 let contagem = 0;
+let microfoneAtivo = false;
+let audioContext = null;
+let analyser = null;
+let ultimaPalma = 0; // timestamp da última palma detectada
 
 const palavraEl = document.getElementById("palavra");
 const palmasEl = document.getElementById("palmas");
 const contadorEl = document.getElementById("contador");
 const resultadoEl = document.getElementById("resultado");
 const mensagemMicrofoneEl = document.getElementById("mensagem-microfone");
+const statusMicrofoneEl = document.getElementById("status-microfone");
+const volumeBarEl = document.getElementById("volume-bar");
+const toggleMicBtn = document.getElementById("toggle-mic");
 const palmaBtn = document.getElementById("palma-btn");
 
 // Atualiza contador e emojis
@@ -132,7 +170,7 @@ function conferir() {
     resultadoEl.textContent = "✅ Muito bem!";
     resultadoEl.className = "certo";
   }else{
-    resultadoEl.textContent = "❌ Tente novamente!";
+    resultadoEl.textContent = `❌ Tente novamente! A resposta é ${palavras[indice].silabas} sílaba${palavras[indice].silabas > 1 ? 's' : ''}`;
     resultadoEl.className = "errado";
   }
 }
@@ -144,40 +182,113 @@ function proxima() {
   contagem = 0;
   atualizarContagem();
   resultadoEl.style.display = "none";
-  mensagemMicrofoneEl.textContent = ""; // limpa mensagem
 }
 
-// ------------------------
-// Microfone para detectar palmas
-// ------------------------
-navigator.mediaDevices.getUserMedia({ audio: true })
-.then(stream => {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const mic = audioContext.createMediaStreamSource(stream);
-  const analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
-  mic.connect(analyser);
-  const dataArray = new Uint8Array(analyser.fftSize);
-  const threshold = 150; // ajuste conforme microfone
+// Toggle microfone
+function toggleMicrofone() {
+  if (microfoneAtivo) {
+    desligarMicrofone();
+  } else {
+    ligarMicrofone();
+  }
+}
 
-  function detectarPalma() {
-    analyser.getByteTimeDomainData(dataArray);
-    let max = Math.max(...dataArray);
-    if(max > threshold){
+// Ligar microfone
+function ligarMicrofone() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+  .then(stream => {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const mic = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.3;
+    mic.connect(analyser);
+    
+    microfoneAtivo = true;
+    statusMicrofoneEl.textContent = "🎤 Microfone: Ligado - Bata palmas!";
+    statusMicrofoneEl.className = "mic-ativo";
+    toggleMicBtn.textContent = "Desligar Microfone";
+    toggleMicBtn.classList.add("desligado");
+    mensagemMicrofoneEl.textContent = "";
+    
+    detectarPalmas();
+  })
+  .catch(err => {
+    console.warn("Erro ao acessar microfone:", err);
+    mensagemMicrofoneEl.textContent = "❌ Não foi possível acessar o microfone. Use o clique no emoji 👏";
+  });
+}
+
+// Desligar microfone
+function desligarMicrofone() {
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
+  microfoneAtivo = false;
+  statusMicrofoneEl.textContent = "🎤 Microfone: Desligado";
+  statusMicrofoneEl.className = "mic-inativo";
+  toggleMicBtn.textContent = "Ligar Microfone";
+  toggleMicBtn.classList.remove("desligado");
+  volumeBarEl.style.width = "0%";
+}
+
+// Detectar palmas com melhor algoritmo
+function detectarPalmas() {
+  if (!microfoneAtivo || !analyser) return;
+  
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(dataArray);
+  
+  // Calcular volume RMS (mais preciso que max)
+  let sum = 0;
+  for (let i = 0; i < dataArray.length; i++) {
+    sum += dataArray[i] * dataArray[i];
+  }
+  const rms = Math.sqrt(sum / dataArray.length);
+  
+  // Atualizar indicador visual de volume
+  const volumePercent = Math.min((rms / 50) * 100, 100);
+  volumeBarEl.style.width = volumePercent + "%";
+  
+  // Detectar picos de som (palmas)
+  const threshold = 30; // ajustável
+  const agora = Date.now();
+  const delayMinimo = 300; // 300ms entre palmas para evitar contagem dupla
+  
+  if (rms > threshold && (agora - ultimaPalma) > delayMinimo) {
+    // Analisar frequências médias/altas (característico de palmas)
+    let freqMediaAlta = 0;
+    const start = Math.floor(dataArray.length * 0.3); // frequências médias/altas
+    const end = Math.floor(dataArray.length * 0.8);
+    
+    for (let i = start; i < end; i++) {
+      freqMediaAlta += dataArray[i];
+    }
+    freqMediaAlta /= (end - start);
+    
+    // Se há energia significativa nas freq. médias/altas, provavelmente é uma palma
+    if (freqMediaAlta > 20) {
       contagem++;
       atualizarContagem();
+      ultimaPalma = agora;
+      
+      // Feedback visual
+      palmaBtn.style.transform = "scale(1.3)";
+      setTimeout(() => {
+        palmaBtn.style.transform = "scale(1)";
+      }, 200);
     }
-    requestAnimationFrame(detectarPalma);
   }
-  detectarPalma();
-})
-.catch(err => {
-  console.warn("Microfone não disponível.", err);
-  mensagemMicrofoneEl.textContent = "Use o clique no emoji 👏 porque o microfone não está funcionando aqui.";
-});
+  
+  requestAnimationFrame(detectarPalmas);
+}
 
 // Inicializa contador
 atualizarContagem();
+
+// Info inicial
+mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para detectar palmas automaticamente!";
 </script>
 </body>
 </html>
