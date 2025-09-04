@@ -11,6 +11,33 @@
     padding: 20px;
   }
   h1 { color: #4a148c; }
+  
+  /* Progresso */
+  #progresso {
+    font-size: 20px;
+    color: #1565c0;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .barra-progresso {
+    width: 300px;
+    height: 15px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    margin: 10px auto;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .progresso-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #42a5f5, #1e88e5);
+    width: 0%;
+    transition: width 0.5s ease;
+    border-radius: 10px;
+  }
+  
   #palma-btn { font-size: 100px; cursor: pointer; transition: transform 0.2s; }
   #palma-btn:active { transform: scale(1.2); }
   #palmas { font-size: 30px; margin: 15px 0; min-height: 40px; }
@@ -29,6 +56,8 @@
   .btn-toggle-mic:hover { background: #45a049; }
   .btn-toggle-mic.desligado { background: #f44336; }
   .btn-toggle-mic.desligado:hover { background: #d32f2f; }
+  .btn-reiniciar { background: #4caf50; color: white; }
+  .btn-reiniciar:hover { background: #45a049; }
   #resultado { font-size: 26px; font-weight: bold; margin-top: 15px; display: none; }
   #resultado.certo { color: green; animation: pulse 0.6s infinite alternate; }
   #resultado.errado { color: red; animation: shake 0.3s infinite; }
@@ -50,12 +79,81 @@
     width: 0%; 
     transition: width 0.1s;
   }
+  
+  /* Tela de parabéns */
+  .parabens-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .parabens-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    animation: bounceIn 1s ease-out;
+  }
+  
+  .parabens-titulo {
+    font-size: 48px;
+    margin-bottom: 20px;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  .parabens-texto {
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+  
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #ffcc02;
+    animation: fall 3s linear infinite;
+  }
+  
+  .confetti:nth-child(odd) { background: #ff6b6b; animation-delay: 0.5s; }
+  .confetti:nth-child(even) { background: #4ecdc4; animation-delay: 1s; }
+  
   @keyframes pulse { from {transform: scale(1);} to {transform: scale(1.2);} }
   @keyframes shake { 0%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);} }
+  
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  @keyframes glow {
+    from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073, 0 0 40px #e60073; }
+    to { text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6, 0 0 50px #ff4da6; }
+  }
+  
+  @keyframes fall {
+    to { transform: translateY(100vh) rotate(360deg); }
+  }
 </style>
 </head>
 <body>
 <h1>Jogo das Palmas 👏</h1>
+
+<div id="progresso">1/20</div>
+<div class="barra-progresso">
+  <div class="progresso-fill" id="progresso-fill"></div>
+</div>
+
 <p id="palavra">BICICLETA</p>
 <div id="dica">💡 BI-CI-CLE-TA</div>
 
@@ -81,6 +179,18 @@
 
 <div id="resultado"></div>
 
+<!-- Tela de parabéns -->
+<div class="parabens-overlay" id="parabens-overlay">
+  <div class="parabens-content">
+    <div class="parabens-titulo">🎉 PARABÉNS! 🎉</div>
+    <div class="parabens-texto">
+      Você completou todas as 20 palavras!<br>
+      Excelente trabalho com as sílabas! 👏
+    </div>
+    <button class="btn btn-reiniciar" onclick="reiniciarJogo()">🔄 Jogar Novamente</button>
+  </div>
+</div>
+
 <script>
 const palavras = [
   { texto: "BICICLETA", silabas: 4, dica: "BI-CI-CLE-TA" },
@@ -101,7 +211,7 @@ const palavras = [
   { texto: "PAREDE", silabas: 3, dica: "PA-RE-DE" },
   { texto: "VIDRO", silabas: 2, dica: "VI-DRO" },
   { texto: "LEBRE", silabas: 2, dica: "LE-BRE" },
-  { texto: "SOL", silabas: 1, dica: "PAU" },
+  { texto: "SOL", silabas: 1, dica: "SOL" },
   { texto: "BOMBEIRO", silabas: 3, dica: "BOM-BEI-RO" }
 ];
 
@@ -110,7 +220,7 @@ let contagem = 0;
 let microfoneAtivo = false;
 let audioContext = null;
 let analyser = null;
-let ultimaPalma = 0; // timestamp da última palma detectada
+let ultimaPalma = 0;
 let dicaMostrada = false;
 
 const palavraEl = document.getElementById("palavra");
@@ -123,11 +233,57 @@ const statusMicrofoneEl = document.getElementById("status-microfone");
 const volumeBarEl = document.getElementById("volume-bar");
 const toggleMicBtn = document.getElementById("toggle-mic");
 const palmaBtn = document.getElementById("palma-btn");
+const progressoEl = document.getElementById("progresso");
+const progressoFillEl = document.getElementById("progresso-fill");
+const parabensOverlay = document.getElementById("parabens-overlay");
 
 // Atualiza contador e emojis
 function atualizarContagem() {
   contadorEl.textContent = contagem + (contagem===1 ? " palma" : " palmas");
   palmasEl.textContent = "👏".repeat(contagem);
+}
+
+// Atualizar progresso
+function atualizarProgresso() {
+  const atual = indice + 1;
+  const total = palavras.length;
+  progressoEl.textContent = `${atual}/${total}`;
+  
+  const porcentagem = (atual / total) * 100;
+  progressoFillEl.style.width = porcentagem + "%";
+}
+
+// Mostrar animação de parabéns
+function mostrarParabens() {
+  parabensOverlay.style.display = "flex";
+  
+  // Criar confetes
+  for (let i = 0; i < 50; i++) {
+    setTimeout(() => {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.animationDelay = Math.random() * 3 + 's';
+      confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      parabensOverlay.appendChild(confetti);
+      
+      setTimeout(() => confetti.remove(), 5000);
+    }, i * 50);
+  }
+}
+
+// Reiniciar jogo
+function reiniciarJogo() {
+  indice = 0;
+  contagem = 0;
+  dicaMostrada = false;
+  parabensOverlay.style.display = "none";
+  
+  palavraEl.textContent = palavras[indice].texto;
+  atualizarContagem();
+  atualizarProgresso();
+  resultadoEl.style.display = "none";
+  dicaEl.style.display = "none";
 }
 
 // Mostrar dica
@@ -168,11 +324,19 @@ function conferir() {
 
 // Próxima palavra
 function proxima() {
-  indice = (indice + 1) % palavras.length;
+  indice++;
+  
+  // Verificar se chegou ao final
+  if (indice >= palavras.length) {
+    mostrarParabens();
+    return;
+  }
+  
   palavraEl.textContent = palavras[indice].texto;
   contagem = 0;
   dicaMostrada = false;
   atualizarContagem();
+  atualizarProgresso();
   resultadoEl.style.display = "none";
   dicaEl.style.display = "none";
 }
@@ -278,12 +442,14 @@ function detectarPalmas() {
   requestAnimationFrame(detectarPalmas);
 }
 
-// Inicializa contador
-atualizarContagem();
+// Inicializar jogo
+function inicializar() {
+  atualizarContagem();
+  atualizarProgresso();
+  mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para detectar palmas automaticamente!";
+}
 
-// Info inicial
-mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para detectar palmas automaticamente!";
+inicializar();
 </script>
 </body>
 </html>
-
