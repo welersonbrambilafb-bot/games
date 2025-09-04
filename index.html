@@ -236,51 +236,52 @@ function desligarMicrofone() {
 // Detectar palmas com melhor algoritmo
 function detectarPalmas() {
   if (!microfoneAtivo || !analyser) return;
-  
+
   const dataArray = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(dataArray);
-  
-  // Calcular volume RMS (mais preciso que max)
+
   let sum = 0;
   for (let i = 0; i < dataArray.length; i++) {
     sum += dataArray[i] * dataArray[i];
   }
   const rms = Math.sqrt(sum / dataArray.length);
-  
-  // Atualizar indicador visual de volume
+
   const volumePercent = Math.min((rms / 50) * 100, 100);
   volumeBarEl.style.width = volumePercent + "%";
-  
-  // Detectar picos de som (palmas)
-  const threshold = 90; // ajustável
+
+  const thresholdRMS = 95; 
+  const minFreqEnergy = 25; 
+  const delayMinimo = 350;
   const agora = Date.now();
-  const delayMinimo = 300; // 300ms entre palmas para evitar contagem dupla
-  
-  if (rms > threshold && (agora - ultimaPalma) > delayMinimo) {
-    // Analisar frequências médias/altas (característico de palmas)
+
+  if (rms > thresholdRMS && (agora - ultimaPalma) > delayMinimo) {
     let freqMediaAlta = 0;
-    const start = Math.floor(dataArray.length * 0.3); // frequências médias/altas
-    const end = Math.floor(dataArray.length * 0.8);
-    
-    for (let i = start; i < end; i++) {
+    const sampleRate = audioContext.sampleRate;
+    const binWidth = sampleRate / analyser.fftSize;
+
+    const startFreqHz = 2000;
+    const endFreqHz = 8000;
+
+    const startIndex = Math.floor(startFreqHz / binWidth);
+    const endIndex = Math.floor(endFreqHz / binWidth);
+
+    for (let i = startIndex; i < endIndex; i++) {
       freqMediaAlta += dataArray[i];
     }
-    freqMediaAlta /= (end - start);
-    
-    // Se há energia significativa nas freq. médias/altas, provavelmente é uma palma
-    if (freqMediaAlta > 20) {
+    freqMediaAlta /= (endIndex - startIndex);
+
+    if (freqMediaAlta > minFreqEnergy) {
       contagem++;
       atualizarContagem();
       ultimaPalma = agora;
-      
-      // Feedback visual
+
       palmaBtn.style.transform = "scale(1.3)";
       setTimeout(() => {
         palmaBtn.style.transform = "scale(1)";
       }, 200);
     }
   }
-  
+
   requestAnimationFrame(detectarPalmas);
 }
 
@@ -292,6 +293,7 @@ mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para d
 </script>
 </body>
 </html>
+
 
 
 
