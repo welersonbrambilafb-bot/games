@@ -15,6 +15,7 @@
   #palma-btn:active { transform: scale(1.2); }
   #palmas { font-size: 30px; margin: 15px 0; min-height: 40px; }
   #contador { font-size: 22px; margin: 10px 0; color: #1565c0; }
+  #dica { font-size: 20px; margin: 10px 0; color: #7b1fa2; font-weight: bold; display: none; }
   .btn { font-size: 18px; padding: 10px 20px; margin: 5px; border: none; border-radius: 10px; cursor: pointer; transition: background 0.3s; }
   .btn-remove { background: #ef5350; color: white; }
   .btn-remove:hover { background: #e53935; }
@@ -22,6 +23,8 @@
   .btn-check:hover { background: #1e88e5; }
   .btn-next { background: #ffca28; color: #4e342e; }
   .btn-next:hover { background: #ffb300; }
+  .btn-hint { background: #9c27b0; color: white; }
+  .btn-hint:hover { background: #8e24aa; }
   .btn-toggle-mic { background: #4caf50; color: white; }
   .btn-toggle-mic:hover { background: #45a049; }
   .btn-toggle-mic.desligado { background: #f44336; }
@@ -54,6 +57,7 @@
 <body>
 <h1>Jogo das Palmas 👏</h1>
 <p id="palavra">BICICLETA</p>
+<div id="dica">💡 BI-CI-CLE-TA</div>
 
 <div id="palma-btn">👏</div>
 <div id="contador">0 palmas</div>
@@ -71,6 +75,7 @@
 
 <button class="btn btn-remove" onclick="removerPalma()">Remover Palmas</button>
 <button class="btn btn-check" onclick="conferir()">Conferir</button>
+<button class="btn btn-hint" onclick="mostrarDica()">💡 Dica</button>
 <button class="btn btn-next" onclick="proxima()">Próximo</button>
 <button class="btn btn-toggle-mic" id="toggle-mic" onclick="toggleMicrofone()">Ligar Microfone</button>
 
@@ -78,26 +83,26 @@
 
 <script>
 const palavras = [
-  { texto: "BICICLETA", silabas: 4 },
-  { texto: "TELEVISÃO", silabas: 4 },
-  { texto: "COMPUTADOR", silabas: 4 },
-  { texto: "ASTRONAUTA", silabas: 5 },
-  { texto: "HIPOPÓTAMO", silabas: 5 },
-  { texto: "CADEIRANTE", silabas: 4 },
-  { texto: "BORBOLETA", silabas: 4 },
-  { texto: "BORRACHA", silabas: 3 },
-  { texto: "ARBUSTO", silabas: 3 },
-  { texto: "JANELA", silabas: 3 },
-  { texto: "ALMOÇO", silabas: 3 },
-  { texto: "PRESENTE", silabas: 3 },
-  { texto: "BRINQUEDO", silabas: 3 },
-  { texto: "PORTA", silabas: 2 },
-  { texto: "LIVRO", silabas: 2 },
-  { texto: "PAREDE", silabas: 3 },
-  { texto: "VIDRO", silabas: 2 },
-  { texto: "LEBRE", silabas: 2 },
-  { texto: "PAU", silabas: 1 },
-  { texto: "BOMBEIRO", silabas: 3 }
+  { texto: "BICICLETA", silabas: 4, dica: "BI-CI-CLE-TA" },
+  { texto: "TELEVISÃO", silabas: 4, dica: "TE-LE-VI-SÃO" },
+  { texto: "COMPUTADOR", silabas: 4, dica: "COM-PU-TA-DOR" },
+  { texto: "ASTRONAUTA", silabas: 5, dica: "AS-TRO-NAU-TA" },
+  { texto: "HIPOPÓTAMO", silabas: 5, dica: "HI-PO-PÓ-TA-MO" },
+  { texto: "CADEIRANTE", silabas: 4, dica: "CA-DEI-RAN-TE" },
+  { texto: "BORBOLETA", silabas: 4, dica: "BOR-BO-LE-TA" },
+  { texto: "BORRACHA", silabas: 3, dica: "BOR-RA-CHA" },
+  { texto: "ARBUSTO", silabas: 3, dica: "AR-BUS-TO" },
+  { texto: "JANELA", silabas: 3, dica: "JA-NE-LA" },
+  { texto: "ALMOÇO", silabas: 3, dica: "AL-MO-ÇO" },
+  { texto: "PRESENTE", silabas: 3, dica: "PRE-SEN-TE" },
+  { texto: "BRINQUEDO", silabas: 3, dica: "BRIN-QUE-DO" },
+  { texto: "PORTA", silabas: 2, dica: "POR-TA" },
+  { texto: "LIVRO", silabas: 2, dica: "LI-VRO" },
+  { texto: "PAREDE", silabas: 3, dica: "PA-RE-DE" },
+  { texto: "VIDRO", silabas: 2, dica: "VI-DRO" },
+  { texto: "LEBRE", silabas: 2, dica: "LE-BRE" },
+  { texto: "PAU", silabas: 1, dica: "PAU" },
+  { texto: "BOMBEIRO", silabas: 3, dica: "BOM-BEI-RO" }
 ];
 
 let indice = 0;
@@ -106,8 +111,10 @@ let microfoneAtivo = false;
 let audioContext = null;
 let analyser = null;
 let ultimaPalma = 0; // timestamp da última palma detectada
+let dicaMostrada = false;
 
 const palavraEl = document.getElementById("palavra");
+const dicaEl = document.getElementById("dica");
 const palmasEl = document.getElementById("palmas");
 const contadorEl = document.getElementById("contador");
 const resultadoEl = document.getElementById("resultado");
@@ -121,6 +128,18 @@ const palmaBtn = document.getElementById("palma-btn");
 function atualizarContagem() {
   contadorEl.textContent = contagem + (contagem===1 ? " palma" : " palmas");
   palmasEl.textContent = "👏".repeat(contagem);
+}
+
+// Mostrar dica
+function mostrarDica() {
+  if (!dicaMostrada) {
+    dicaEl.textContent = "💡 " + palavras[indice].dica;
+    dicaEl.style.display = "block";
+    dicaMostrada = true;
+  } else {
+    dicaEl.style.display = "none";
+    dicaMostrada = false;
+  }
 }
 
 // Clique no emoji
@@ -152,8 +171,10 @@ function proxima() {
   indice = (indice + 1) % palavras.length;
   palavraEl.textContent = palavras[indice].texto;
   contagem = 0;
+  dicaMostrada = false;
   atualizarContagem();
   resultadoEl.style.display = "none";
+  dicaEl.style.display = "none";
 }
 
 // Toggle microfone
@@ -265,15 +286,3 @@ mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para d
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
