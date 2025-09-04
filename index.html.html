@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Jogo das Palmas</title>
+<style>
+  body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-align: center;
+    background: linear-gradient(to bottom, #f9f7fc, #e3f2fd);
+    padding: 20px;
+  }
+  h1 { color: #4a148c; }
+  #palma-btn { font-size: 100px; cursor: pointer; transition: transform 0.2s; }
+  #palma-btn:active { transform: scale(1.2); }
+  #palmas { font-size: 30px; margin: 15px 0; min-height: 40px; }
+  #contador { font-size: 22px; margin: 10px 0; color: #1565c0; }
+  .btn { font-size: 18px; padding: 10px 20px; margin: 5px; border: none; border-radius: 10px; cursor: pointer; transition: background 0.3s; }
+  .btn-remove { background: #ef5350; color: white; }
+  .btn-remove:hover { background: #e53935; }
+  .btn-check { background: #42a5f5; color: white; }
+  .btn-check:hover { background: #1e88e5; }
+  .btn-next { background: #ffca28; color: #4e342e; }
+  .btn-next:hover { background: #ffb300; }
+  #resultado { font-size: 26px; font-weight: bold; margin-top: 15px; display: none; }
+  #resultado.certo { color: green; animation: pulse 0.6s infinite alternate; }
+  #resultado.errado { color: red; animation: shake 0.3s infinite; }
+  #mensagem-microfone { font-size: 18px; color: #d84315; margin: 10px 0; }
+  @keyframes pulse { from {transform: scale(1);} to {transform: scale(1.2);} }
+  @keyframes shake { 0%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);} }
+</style>
+</head>
+<body>
+<h1>Jogo das Palmas 👏</h1>
+<p id="palavra">Banana</p>
+
+<div id="palma-btn">👏</div>
+<div id="contador">0 palmas</div>
+<div id="palmas"></div>
+<div id="mensagem-microfone"></div>
+
+<button class="btn btn-remove" onclick="removerPalma()">Remover Palmas</button>
+<button class="btn btn-check" onclick="conferir()">Conferir</button>
+<button class="btn btn-next" onclick="proxima()">Próximo</button>
+
+<div id="resultado"></div>
+
+<script>
+const palavras = [
+  { texto: "Banana", silabas: 3 }, { texto: "Cachorro", silabas: 3 },
+  { texto: "Elefante", silabas: 4 }, { texto: "Uva", silabas: 2 },
+  { texto: "Jacaré", silabas: 3 }, { texto: "Gato", silabas: 2 },
+  { texto: "Casa", silabas: 2 }, { texto: "Pato", silabas: 2 },
+  { texto: "Boneca", silabas: 3 }, { texto: "Menino", silabas: 3 },
+  { texto: "Menina", silabas: 3 }, { texto: "Escola", silabas: 3 },
+  { texto: "Carro", silabas: 2 }, { texto: "Moto", silabas: 2 },
+  { texto: "Cavalo", silabas: 3 }, { texto: "Abelha", silabas: 3 },
+  { texto: "Bola", silabas: 2 }, { texto: "Bolo", silabas: 2 },
+  { texto: "Chuva", silabas: 2 }, { texto: "Peixe", silabas: 2 },
+  { texto: "Galinha", silabas: 3 }, { texto: "Sapo", silabas: 2 },
+  { texto: "Bebê", silabas: 2 }, { texto: "Foca", silabas: 2 },
+  { texto: "Macaco", silabas: 3 }, { texto: "Onça", silabas: 2 },
+  { texto: "Leão", silabas: 2 }, { texto: "Tigre", silabas: 2 },
+  { texto: "Formiga", silabas: 3 }, { texto: "Flor", silabas: 1 },
+  { texto: "Copo", silabas: 2 }, { texto: "Mesa", silabas: 2 },
+  { texto: "Cadeira", silabas: 3 }, { texto: "Sapato", silabas: 3 },
+  { texto: "Camisa", silabas: 3 }, { texto: "Saia", silabas: 2 },
+  { texto: "Calça", silabas: 2 }, { texto: "Chapéu", silabas: 2 },
+  { texto: "Relógio", silabas: 3 }, { texto: "Boneco", silabas: 3 },
+  { texto: "Dente", silabas: 2 }, { texto: "Cabelo", silabas: 3 },
+  { texto: "Olho", silabas: 2 }, { texto: "Nariz", silabas: 2 },
+  { texto: "Orelha", silabas: 3 }, { texto: "Boca", silabas: 2 },
+  { texto: "Peito", silabas: 2 }, { texto: "Braço", silabas: 2 },
+  { texto: "Perna", silabas: 2 }, { texto: "Mão", silabas: 1 },
+  { texto: "Pé", silabas: 1 }, { texto: "Lápis", silabas: 2 },
+  { texto: "Caneta", silabas: 3 }, { texto: "Caderno", silabas: 3 },
+  { texto: "Livro", silabas: 2 }, { texto: "Borracha", silabas: 3 },
+  { texto: "Régua", silabas: 2 }, { texto: "Quadro", silabas: 2 },
+  { texto: "Giz", silabas: 1 }, { texto: "Professor", silabas: 3 },
+  { texto: "Aluna", silabas: 3 }, { texto: "Amigo", silabas: 3 },
+  { texto: "Amiga", silabas: 3 }, { texto: "Sol", silabas: 1 },
+  { texto: "Lua", silabas: 2 }, { texto: "Estrela", silabas: 3 },
+  { texto: "Céu", silabas: 1 }, { texto: "Árvore", silabas: 3 },
+  { texto: "Folha", silabas: 2 }, { texto: "Fruta", silabas: 2 },
+  { texto: "Maçã", silabas: 2 }, { texto: "Pera", silabas: 2 },
+  { texto: "Laranja", silabas: 3 }, { texto: "Melancia", silabas: 4 },
+  { texto: "Morango", silabas: 3 }, { texto: "Abacaxi", silabas: 4 },
+  { texto: "Limão", silabas: 2 }, { texto: "Tomate", silabas: 3 },
+  { texto: "Batata", silabas: 3 }, { texto: "Cenoura", silabas: 3 },
+  { texto: "Feijão", silabas: 2 }, { texto: "Arroz", silabas: 2 },
+  { texto: "Pão", silabas: 1 }, { texto: "Leite", silabas: 2 },
+  { texto: "Queijo", silabas: 2 }, { texto: "Ovo", silabas: 2 },
+  { texto: "Carne", silabas: 2 }, { texto: "Sopa", silabas: 2 },
+  { texto: "Pizza", silabas: 2 }, { texto: "Doce", silabas: 2 },
+  { texto: "Biscoito", silabas: 3 }, { texto: "Sorvete", silabas: 3 },
+  { texto: "Chocolate", silabas: 4 }, { texto: "Bala", silabas: 2 },
+  { texto: "Pipoca", silabas: 3 }
+];
+
+let indice = 0;
+let contagem = 0;
+
+const palavraEl = document.getElementById("palavra");
+const palmasEl = document.getElementById("palmas");
+const contadorEl = document.getElementById("contador");
+const resultadoEl = document.getElementById("resultado");
+const mensagemMicrofoneEl = document.getElementById("mensagem-microfone");
+const palmaBtn = document.getElementById("palma-btn");
+
+// Atualiza contador e emojis
+function atualizarContagem() {
+  contadorEl.textContent = contagem + (contagem===1 ? " palma" : " palmas");
+  palmasEl.textContent = "👏".repeat(contagem);
+}
+
+// Clique no emoji
+palmaBtn.addEventListener("click", () => {
+  contagem++;
+  atualizarContagem();
+});
+
+// Remover palma
+function removerPalma() {
+  if(contagem>0){ contagem--; atualizarContagem(); }
+}
+
+// Conferir resposta
+function conferir() {
+  const certo = contagem === palavras[indice].silabas;
+  resultadoEl.style.display = "block";
+  if(certo){
+    resultadoEl.textContent = "✅ Muito bem!";
+    resultadoEl.className = "certo";
+  }else{
+    resultadoEl.textContent = "❌ Tente novamente!";
+    resultadoEl.className = "errado";
+  }
+}
+
+// Próxima palavra
+function proxima() {
+  indice = (indice + 1) % palavras.length;
+  palavraEl.textContent = palavras[indice].texto;
+  contagem = 0;
+  atualizarContagem();
+  resultadoEl.style.display = "none";
+  mensagemMicrofoneEl.textContent = ""; // limpa mensagem
+}
+
+// ------------------------
+// Microfone para detectar palmas
+// ------------------------
+navigator.mediaDevices.getUserMedia({ audio: true })
+.then(stream => {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const mic = audioContext.createMediaStreamSource(stream);
+  const analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  mic.connect(analyser);
+  const dataArray = new Uint8Array(analyser.fftSize);
+  const threshold = 150; // ajuste conforme microfone
+
+  function detectarPalma() {
+    analyser.getByteTimeDomainData(dataArray);
+    let max = Math.max(...dataArray);
+    if(max > threshold){
+      contagem++;
+      atualizarContagem();
+    }
+    requestAnimationFrame(detectarPalma);
+  }
+  detectarPalma();
+})
+.catch(err => {
+  console.warn("Microfone não disponível.", err);
+  mensagemMicrofoneEl.textContent = "Use o clique no emoji 👏 porque o microfone não está funcionando aqui.";
+});
+
+// Inicializa contador
+atualizarContagem();
+</script>
+</body>
+</html>
