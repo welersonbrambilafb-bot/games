@@ -252,7 +252,7 @@ function detectarPalmas() {
   volumeBarEl.style.width = volumePercent + "%";
   
   // Detectar picos de som (palmas)
-  const threshold = 30; // ajustável
+  const threshold = 150; // ajustável
   const agora = Date.now();
   const delayMinimo = 300; // 300ms entre palmas para evitar contagem dupla
   
@@ -292,3 +292,4 @@ mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para d
 </script>
 </body>
 </html>
+
