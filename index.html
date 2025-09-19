@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Jogo das Palmas da ANA LAURA e JOAQUIM!</title>
+<title>Teacher Augusto's Clapping Game</title>
 <style>
   body {
     font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -12,12 +12,18 @@
   }
   h1 { color: #4a148c; }
   #palavra { 
-  font-size: 48px;  /* Ajuste este valor conforme desejado */
-  font-weight: bold;
-  color: #4a148c;
-  margin: 20px 0;
-}
-  /* Progresso */
+    font-size: 48px;
+    font-weight: bold;
+    color: #4a148c;
+    margin: 20px 0;
+  }
+  #traducao {
+    font-size: 24px;
+    color: #666;
+    margin: 10px 0;
+    font-style: italic;
+  }
+  /* Progress */
   #progresso {
     font-size: 20px;
     color: #1565c0;
@@ -85,7 +91,7 @@
     transition: width 0.1s;
   }
   
-  /* Tela de parabéns */
+  /* Congratulations screen */
   .parabens-overlay {
     position: fixed;
     top: 0;
@@ -149,25 +155,51 @@
   @keyframes fall {
     to { transform: translateY(100vh) rotate(360deg); }
   }
+  
+  .nivel-indicator {
+    font-size: 18px;
+    color: #666;
+    margin: 10px 0;
+    background: #f0f0f0;
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .instructions {
+    background: #fff3e0;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 600px;
+    font-size: 16px;
+    color: #5d4037;
+  }
 </style>
 </head>
 <body>
-<h1>Jogo das Palmas da ANA LAURA e do JOAQUIM!! 👏</h1>
+<h1>🎓 Teacher Augusto's Clapping Game 👏</h1>
 
-<div id="progresso">1/20</div>
+<div class="instructions">
+  <strong>How to play:</strong> Clap once for each syllable in the word. Click the clap emoji or use your microphone!
+</div>
+
+<div id="progresso">1/40</div>
 <div class="barra-progresso">
   <div class="progresso-fill" id="progresso-fill"></div>
 </div>
 
-<p id="palavra">BICICLETA</p>
-<div id="dica">💡 BI-CI-CLE-TA</div>
+<div class="nivel-indicator" id="nivel">Level: 1 syllable</div>
+
+<p id="palavra">BALL</p>
+<div id="dica">💡 BALL - 1 syllable</div>
 
 <div id="palma-btn">👏</div>
-<div id="contador">0 palmas</div>
+<div id="contador">0 claps</div>
 <div id="palmas"></div>
 
 <div id="status-microfone" class="mic-inativo">
-  🎤 Microfone: Desligado
+  🎤 Microphone: Off
 </div>
 
 <div class="volume-indicator">
@@ -176,48 +208,75 @@
 
 <div id="mensagem-microfone"></div>
 
-<button class="btn btn-remove" onclick="removerPalma()">Remover Palmas</button>
-<button class="btn btn-check" onclick="conferir()">Conferir</button>
-<button class="btn btn-hint" onclick="mostrarDica()">💡 Dica</button>
-<button class="btn btn-next" onclick="proxima()">Próximo</button>
-<button class="btn btn-toggle-mic" id="toggle-mic" onclick="toggleMicrofone()">Ligar Microfone</button>
+<button class="btn btn-remove" onclick="removerPalma()">Remove Clap</button>
+<button class="btn btn-check" onclick="conferir()">Check Answer</button>
+<button class="btn btn-hint" onclick="mostrarDica()">💡 Hint</button>
+<button class="btn btn-next" onclick="proxima()">Next Word</button>
+<button class="btn btn-toggle-mic" id="toggle-mic" onclick="toggleMicrofone()">Turn On Microphone</button>
 
 <div id="resultado"></div>
 
-<!-- Tela de parabéns -->
+<!-- Congratulations screen -->
 <div class="parabens-overlay" id="parabens-overlay">
   <div class="parabens-content">
-    <div class="parabens-titulo">🎉 PARABÉNS! 🎉</div>
+    <div class="parabens-titulo">🎉 CONGRATULATIONS! 🎉</div>
     <div class="parabens-texto">
-      Você completou todas as 20 palavras!<br>
-      Excelente trabalho com as sílabas! 👏
+      You completed all 40 words!<br>
+      Excellent work with syllables! 👏<br>
+      You are amazing! 🌟
     </div>
-    <button class="btn btn-reiniciar" onclick="reiniciarJogo()">🔄 Jogar Novamente</button>
+    <button class="btn btn-reiniciar" onclick="reiniciarJogo()">🔄 Play Again</button>
   </div>
 </div>
 
 <script>
 const palavras = [
-  { texto: "BICICLETA", silabas: 4, dica: "BI-CI-CLE-TA" },
-  { texto: "TELEVISÃO", silabas: 4, dica: "TE-LE-VI-SÃO" },
-  { texto: "COMPUTADOR", silabas: 4, dica: "COM-PU-TA-DOR" },
-  { texto: "ASTRONAUTA", silabas: 4, dica: "AS-TRO-NAU-TA" },
-  { texto: "HIPOPÓTAMO", silabas: 5, dica: "HI-PO-PÓ-TA-MO" },
-  { texto: "CADEIRANTE", silabas: 4, dica: "CA-DEI-RAN-TE" },
-  { texto: "BORBOLETA", silabas: 4, dica: "BOR-BO-LE-TA" },
-  { texto: "BORRACHA", silabas: 3, dica: "BOR-RA-CHA" },
-  { texto: "ARBUSTO", silabas: 3, dica: "AR-BUS-TO" },
-  { texto: "JANELA", silabas: 3, dica: "JA-NE-LA" },
-  { texto: "ALMOÇO", silabas: 3, dica: "AL-MO-ÇO" },
-  { texto: "PRESENTE", silabas: 3, dica: "PRE-SEN-TE" },
-  { texto: "BRINQUEDO", silabas: 3, dica: "BRIN-QUE-DO" },
-  { texto: "PORTA", silabas: 2, dica: "POR-TA" },
-  { texto: "LIVRO", silabas: 2, dica: "LI-VRO" },
-  { texto: "PAREDE", silabas: 3, dica: "PA-RE-DE" },
-  { texto: "VIDRO", silabas: 2, dica: "VI-DRO" },
-  { texto: "LEBRE", silabas: 2, dica: "LE-BRE" },
-  { texto: "SOL", silabas: 1, dica: "SOL" },
-  { texto: "BOMBEIRO", silabas: 3, dica: "BOM-BEI-RO" }
+  // One syllable (11 words)
+  { texto: "BALL", silabas: 1, dica: "BALL - 1 syllable" },
+  { texto: "DOG", silabas: 1, dica: "DOG - 1 syllable" },
+  { texto: "CAT", silabas: 1, dica: "CAT - 1 syllable" },
+  { texto: "SUN", silabas: 1, dica: "SUN - 1 syllable" },
+  { texto: "FISH", silabas: 1, dica: "FISH - 1 syllable" },
+  { texto: "CAR", silabas: 1, dica: "CAR - 1 syllable" },
+  { texto: "MILK", silabas: 1, dica: "MILK - 1 syllable" },
+  { texto: "BREAD", silabas: 1, dica: "BREAD - 1 syllable" },
+  { texto: "TREE", silabas: 1, dica: "TREE - 1 syllable" },
+  { texto: "BIRD", silabas: 1, dica: "BIRD - 1 syllable" },
+  { texto: "CAKE", silabas: 1, dica: "CAKE - 1 syllable" },
+  
+  // Two syllables (12 words)
+  { texto: "APPLE", silabas: 2, dica: "AP-PLE" },
+  { texto: "TIGER", silabas: 2, dica: "TI-GER" },
+  { texto: "RABBIT", silabas: 2, dica: "RAB-BIT" },
+  { texto: "FLOWER", silabas: 2, dica: "FLOW-ER" },
+  { texto: "PENCIL", silabas: 2, dica: "PEN-CIL" },
+  { texto: "PUPPY", silabas: 2, dica: "PUP-PY" },
+  { texto: "ZEBRA", silabas: 2, dica: "ZE-BRA" },
+  { texto: "COOKIE", silabas: 2, dica: "COOK-IE" },
+  { texto: "MONKEY", silabas: 2, dica: "MON-KEY" },
+  { texto: "TABLE", silabas: 2, dica: "TA-BLE" },
+  { texto: "PIZZA", silabas: 2, dica: "PIZ-ZA" },
+  { texto: "POPCORN", silabas: 2, dica: "POP-CORN" },
+  
+  // Three syllables (9 words)
+  { texto: "ELEPHANT", silabas: 3, dica: "EL-E-PHANT" },
+  { texto: "STRAWBERRY", silabas: 3, dica: "STRAW-BER-RY" },
+  { texto: "BUTTERFLY", silabas: 3, dica: "BUT-TER-FLY" },
+  { texto: "TOMATO", silabas: 3, dica: "TO-MA-TO" },
+  { texto: "BANANA", silabas: 3, dica: "BA-NA-NA" },
+  { texto: "CHOCOLATE", silabas: 3, dica: "CHOC-O-LATE" },
+  { texto: "UMBRELLA", silabas: 3, dica: "UM-BREL-LA" },
+  { texto: "POTATO", silabas: 3, dica: "PO-TA-TO" },
+  { texto: "AVOCADO", silabas: 4, dica: "AV-O-CA-DO" },
+  
+  // Three and four syllables (7 words)
+  { texto: "WATERMELON", silabas: 4, dica: "WA-TER-MEL-ON" },
+  { texto: "CROCODILE", silabas: 3, dica: "CRO-CO-DILE" },
+  { texto: "KANGAROO", silabas: 3, dica: "KAN-GA-ROO" },
+  { texto: "PINEAPPLE", silabas: 3, dica: "PINE-AP-PLE" },
+  { texto: "ALLIGATOR", silabas: 4, dica: "AL-LI-GA-TOR" },
+  { texto: "HELICOPTER", silabas: 4, dica: "HEL-I-COP-TER" },
+  { texto: "DINOSAUR", silabas: 3, dica: "DI-NO-SAUR" }
 ];
 
 let indice = 0;
@@ -241,14 +300,24 @@ const palmaBtn = document.getElementById("palma-btn");
 const progressoEl = document.getElementById("progresso");
 const progressoFillEl = document.getElementById("progresso-fill");
 const parabensOverlay = document.getElementById("parabens-overlay");
+const nivelEl = document.getElementById("nivel");
 
-// Atualiza contador e emojis
+// Update counter and emojis
 function atualizarContagem() {
-  contadorEl.textContent = contagem + (contagem===1 ? " palma" : " palmas");
+  contadorEl.textContent = contagem + (contagem===1 ? " clap" : " claps");
   palmasEl.textContent = "👏".repeat(contagem);
 }
 
-// Atualizar progresso
+// Update level
+function atualizarNivel() {
+  const silabas = palavras[indice].silabas;
+  let nivelTexto = "";
+  if (silabas === 1) nivelTexto = "Level: 1 syllable";
+  else nivelTexto = `Level: ${silabas} syllables`;
+  nivelEl.textContent = nivelTexto;
+}
+
+// Update progress
 function atualizarProgresso() {
   const atual = indice + 1;
   const total = palavras.length;
@@ -258,11 +327,11 @@ function atualizarProgresso() {
   progressoFillEl.style.width = porcentagem + "%";
 }
 
-// Mostrar animação de parabéns
+// Show congratulations animation
 function mostrarParabens() {
   parabensOverlay.style.display = "flex";
   
-  // Criar confetes
+  // Create confetti
   for (let i = 0; i < 50; i++) {
     setTimeout(() => {
       const confetti = document.createElement('div');
@@ -277,7 +346,7 @@ function mostrarParabens() {
   }
 }
 
-// Reiniciar jogo
+// Restart game
 function reiniciarJogo() {
   indice = 0;
   contagem = 0;
@@ -287,11 +356,12 @@ function reiniciarJogo() {
   palavraEl.textContent = palavras[indice].texto;
   atualizarContagem();
   atualizarProgresso();
+  atualizarNivel();
   resultadoEl.style.display = "none";
   dicaEl.style.display = "none";
 }
 
-// Mostrar dica
+// Show hint
 function mostrarDica() {
   if (!dicaMostrada) {
     dicaEl.textContent = "💡 " + palavras[indice].dica;
@@ -303,35 +373,35 @@ function mostrarDica() {
   }
 }
 
-// Clique no emoji
+// Click on emoji
 palmaBtn.addEventListener("click", () => {
   contagem++;
   atualizarContagem();
 });
 
-// Remover palma
+// Remove clap
 function removerPalma() {
   if(contagem>0){ contagem--; atualizarContagem(); }
 }
 
-// Conferir resposta
+// Check answer
 function conferir() {
   const certo = contagem === palavras[indice].silabas;
   resultadoEl.style.display = "block";
   if(certo){
-    resultadoEl.textContent = "✅ Muito bem!";
+    resultadoEl.textContent = "✅ Great job! Well done!";
     resultadoEl.className = "certo";
   }else{
-    resultadoEl.textContent = `❌ Tente novamente! A resposta é ${palavras[indice].silabas} sílaba${palavras[indice].silabas > 1 ? 's' : ''}`;
+    resultadoEl.textContent = `❌ Try again! The answer is ${palavras[indice].silabas} syllable${palavras[indice].silabas > 1 ? 's' : ''}`;
     resultadoEl.className = "errado";
   }
 }
 
-// Próxima palavra
+// Next word
 function proxima() {
   indice++;
   
-  // Verificar se chegou ao final
+  // Check if completed all words
   if (indice >= palavras.length) {
     mostrarParabens();
     return;
@@ -342,11 +412,12 @@ function proxima() {
   dicaMostrada = false;
   atualizarContagem();
   atualizarProgresso();
+  atualizarNivel();
   resultadoEl.style.display = "none";
   dicaEl.style.display = "none";
 }
 
-// Toggle microfone
+// Toggle microphone
 function toggleMicrofone() {
   if (microfoneAtivo) {
     desligarMicrofone();
@@ -355,7 +426,7 @@ function toggleMicrofone() {
   }
 }
 
-// Ligar microfone
+// Turn on microphone
 function ligarMicrofone() {
   navigator.mediaDevices.getUserMedia({ audio: true })
   .then(stream => {
@@ -367,35 +438,35 @@ function ligarMicrofone() {
     mic.connect(analyser);
     
     microfoneAtivo = true;
-    statusMicrofoneEl.textContent = "🎤 Microfone: Ligado - Bata palmas!";
+    statusMicrofoneEl.textContent = "🎤 Microphone: On - Clap your hands!";
     statusMicrofoneEl.className = "mic-ativo";
-    toggleMicBtn.textContent = "Desligar Microfone";
+    toggleMicBtn.textContent = "Turn Off Microphone";
     toggleMicBtn.classList.add("desligado");
     mensagemMicrofoneEl.textContent = "";
     
     detectarPalmas();
   })
   .catch(err => {
-    console.warn("Erro ao acessar microfone:", err);
-    mensagemMicrofoneEl.textContent = "❌ Não foi possível acessar o microfone. Use o clique no emoji 👏";
+    console.warn("Error accessing microphone:", err);
+    mensagemMicrofoneEl.textContent = "❌ Could not access microphone. Please click the clap emoji 👏 instead";
   });
 }
 
-// Desligar microfone
+// Turn off microphone
 function desligarMicrofone() {
   if (audioContext) {
     audioContext.close();
     audioContext = null;
   }
   microfoneAtivo = false;
-  statusMicrofoneEl.textContent = "🎤 Microfone: Desligado";
+  statusMicrofoneEl.textContent = "🎤 Microphone: Off";
   statusMicrofoneEl.className = "mic-inativo";
-  toggleMicBtn.textContent = "Ligar Microfone";
+  toggleMicBtn.textContent = "Turn On Microphone";
   toggleMicBtn.classList.remove("desligado");
   volumeBarEl.style.width = "0%";
 }
 
-// Detectar palmas com melhor algoritmo
+// Detect claps with better algorithm
 function detectarPalmas() {
   if (!microfoneAtivo || !analyser) return;
 
@@ -447,19 +518,15 @@ function detectarPalmas() {
   requestAnimationFrame(detectarPalmas);
 }
 
-// Inicializar jogo
+// Initialize game
 function inicializar() {
   atualizarContagem();
   atualizarProgresso();
-  mensagemMicrofoneEl.textContent = "💡 Dica: Clique em 'Ligar Microfone' para detectar palmas automaticamente!";
+  atualizarNivel();
+  mensagemMicrofoneEl.textContent = "💡 Tip: Click 'Turn On Microphone' to detect claps automatically!";
 }
 
 inicializar();
 </script>
 </body>
 </html>
-
-
-
-
-
