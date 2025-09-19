@@ -156,15 +156,7 @@
     to { transform: translateY(100vh) rotate(360deg); }
   }
   
-  .nivel-indicator {
-    font-size: 18px;
-    color: #666;
-    margin: 10px 0;
-    background: #f0f0f0;
-    padding: 5px 15px;
-    border-radius: 20px;
-    display: inline-block;
-  }
+
   
   .instructions {
     background: #fff3e0;
@@ -188,8 +180,6 @@
 <div class="barra-progresso">
   <div class="progresso-fill" id="progresso-fill"></div>
 </div>
-
-<div class="nivel-indicator" id="nivel">Level: 1 syllable</div>
 
 <p id="palavra">BALL</p>
 <div id="dica">💡 BALL - 1 syllable</div>
@@ -300,21 +290,11 @@ const palmaBtn = document.getElementById("palma-btn");
 const progressoEl = document.getElementById("progresso");
 const progressoFillEl = document.getElementById("progresso-fill");
 const parabensOverlay = document.getElementById("parabens-overlay");
-const nivelEl = document.getElementById("nivel");
 
 // Update counter and emojis
 function atualizarContagem() {
   contadorEl.textContent = contagem + (contagem===1 ? " clap" : " claps");
   palmasEl.textContent = "👏".repeat(contagem);
-}
-
-// Update level
-function atualizarNivel() {
-  const silabas = palavras[indice].silabas;
-  let nivelTexto = "";
-  if (silabas === 1) nivelTexto = "Level: 1 syllable";
-  else nivelTexto = `Level: ${silabas} syllables`;
-  nivelEl.textContent = nivelTexto;
 }
 
 // Update progress
@@ -356,7 +336,6 @@ function reiniciarJogo() {
   palavraEl.textContent = palavras[indice].texto;
   atualizarContagem();
   atualizarProgresso();
-  atualizarNivel();
   resultadoEl.style.display = "none";
   dicaEl.style.display = "none";
 }
@@ -412,7 +391,6 @@ function proxima() {
   dicaMostrada = false;
   atualizarContagem();
   atualizarProgresso();
-  atualizarNivel();
   resultadoEl.style.display = "none";
   dicaEl.style.display = "none";
 }
@@ -522,7 +500,6 @@ function detectarPalmas() {
 function inicializar() {
   atualizarContagem();
   atualizarProgresso();
-  atualizarNivel();
   mensagemMicrofoneEl.textContent = "💡 Tip: Click 'Turn On Microphone' to detect claps automatically!";
 }
 
